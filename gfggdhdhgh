@@ -1,0 +1,123 @@
+-- Load Rayfield
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Create Window
+local Window = Rayfield:CreateWindow({
+    Name = "Classic 8-Ball Pool By Nanao Games",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "By Nanao Games",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "8Ball",
+        FileName = "Config"
+    },
+    -- Bagian keybind UI
+    ToggleUIKeybind = Enum.KeyCode.K,
+    KeybindText = "Keybind Menu"
+})
+
+--== VISUAL TAB ==--
+local VisualTab = Window:CreateTab("Visual", 4483362458)
+
+local Table1 = workspace.Tables.Table1
+local HitTrajectory = Table1.Guides.HitTrajectory
+
+local maxSegments = 5
+local segmentLength = 10
+local trajectoryParts = {}
+local trajectoryEnabled = false
+
+local function clearTrajectory()
+    for _, part in pairs(trajectoryParts) do
+        if part and part.Parent then
+            part:Destroy()
+        end
+    end
+    trajectoryParts = {}
+end
+
+local function updateTrajectory()
+    clearTrajectory()
+    if not trajectoryEnabled then return end
+
+    local startPos = HitTrajectory.Position
+    local direction = HitTrajectory.CFrame.LookVector.Unit
+    local currentPos = startPos
+
+    for i = 1, maxSegments do
+        local nextPos = currentPos + direction * segmentLength
+        local line = Instance.new("Part")
+        line.Size = Vector3.new(0.2, 0.2, segmentLength)
+        line.CFrame = CFrame.lookAt(currentPos, nextPos) * CFrame.new(0, 0, -segmentLength / 2)
+        line.BrickColor = BrickColor.Green()
+        line.Anchored = true
+        line.CanCollide = false
+        line.Parent = workspace
+        table.insert(trajectoryParts, line)
+        currentPos = nextPos
+    end
+end
+
+-- Toggle untuk garis bola
+VisualTab:CreateToggle({
+    Name = "Garis Bola",
+    CurrentValue = false,
+    Flag = "TrajectoryLine",
+    Callback = function(value)
+        trajectoryEnabled = value
+        if not value then
+            clearTrajectory()
+        else
+            updateTrajectory()
+        end
+    end
+})
+
+-- Slider maksimal garis bola
+VisualTab:CreateSlider({
+    Name = "Maksimal Garis Bola",
+    Range = {1, 20},
+    Increment = 1,
+    Suffix = " Segments",
+    CurrentValue = 5,
+    Flag = "MaxSegments",
+    Callback = function(value)
+        maxSegments = value
+        updateTrajectory()
+    end
+})
+
+-- Slider panjang garis bola
+VisualTab:CreateSlider({
+    Name = "Panjang Garis Bola",
+    Range = {1, 20},
+    Increment = 1,
+    Suffix = " Studs",
+    CurrentValue = 10,
+    Flag = "SegmentLength",
+    Callback = function(value)
+        segmentLength = value
+        updateTrajectory()
+    end
+})
+
+HitTrajectory:GetPropertyChangedSignal("CFrame"):Connect(updateTrajectory)
+
+--== NOTE TAB ==--
+local NoteTab = Window:CreateTab("Note", 4483362458)
+
+-- Rainbow Note
+local NoteLabel = NoteTab:CreateLabel("Note : Jangan Lupa Follow/Subrek!!")
+
+task.spawn(function()
+    while task.wait() do
+        local t = tick()
+        local r = math.sin(t) * 127 + 128
+        local g = math.sin(t + 2) * 127 + 128
+        local b = math.sin(t + 4) * 127 + 128
+        pcall(function()
+            NoteLabel:Set("Note : Jangan Lupa Follow/Subrek!!")
+            NoteLabel.TextColor3 = Color3.fromRGB(r, g, b)
+        end)
+    end
+end)
